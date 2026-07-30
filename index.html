@@ -111,9 +111,8 @@
       <p class="text-[var(--ink)] text-lg leading-relaxed mb-4">
         Mich interessiert vor allem das Programmieren kleiner Tools, die den Alltag erleichtern. Im Jahr 2023 habe ich mit HTML, CSS und JavaScript angefangen. Mittlerweile arbeite ich hauptsächlich mit Python und WordPress an eigenen kleinen Projekten, die mir Spass machen.
       </p>
-      <p class="text-[var(--ink-dim)] leading-relaxed">
-        Neben der Schule arbeite ich ab und zu bei der Lienhardt Fine Jewellery & der Edle Metalle AG. Dort übernehme
-        ich unter anderem das Kaufmänische sowie teile der Webseiten und helfe im Marketing mit.
+      <p class="text-[var(--ink-dim)] leading-relaxed text-center md:text-left">
+        Ich arbeite daneben an eigenen Projekten und begleite praktische Aufgaben rund um Webentwicklung, digitale Tools und kleine Marketing-Tätigkeiten.
       </p>
     </div>
   </div>
@@ -137,7 +136,7 @@
 <section id="lebenslauf" class="border-b border-[var(--line)]">
   <div class="max-w-5xl mx-auto px-6 py-20">
     <p class="text-sm text-[var(--ink-dim)] mb-4 reveal">Lebenslauf</p>
-    <h2 class="text-3xl font-bold tracking-tight mb-12 reveal">Werdegang</h2>
+    <h2 class="text-3xl font-bold tracking-tight mb-12 reveal">Schulausbildung</h2>
     <div id="cvTimeline" class="relative pl-7"></div>
   </div>
 </section>
@@ -155,7 +154,7 @@
 <footer class="border-t border-[var(--line)]">
   <div class="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--ink-dim)]">
     <span>© <span id="year"></span> Lukas Geiger</span>
-    <a href="datenschutz" class="hover:text-[var(--ink)] transition">Datenschutz</a>
+    <a href="datenschutz.html" class="hover:text-[var(--ink)] transition">Datenschutz</a>
   </div>
 </footer>
 
@@ -205,7 +204,7 @@
       title: "RFC 6238 TOTP Generator",
       desc: "Clientseitige Implementierung des TOTP-Standards (RFC 6238). Zeitbasierte Einmalcodes werden vollständig lokal im Browser aus einem Base32-Secret mittels HMAC-SHA1 generiert.",
       tools: ["HTML", "CSS", "JavaScript"],
-      link: "2fa"
+      link: "2fa.html"
     },
     {
       title: "SV Group Menu zu iCal",
@@ -217,7 +216,7 @@
       title: "QR-Code Generator",
       desc: "Erstellt QR-Codes für Text, URLs, WLAN-Zugänge und Kontakte direkt im Browser, mit Export als PNG oder PDF.",
       tools: ["HTML", "CSS", "JavaScript"],
-      link: "qr-generator"
+      link: "qr-generator.html"
     },
      {
       title: "AI Audio Transkription Tool",
@@ -234,9 +233,9 @@
   
     {
       title: "Password Generator",
-      desc: "Generiert sichere Passwörter mit frei wählbarer Länge und Zeichensatz, komplett lokal.",
+      desc: "Generiert sichere Passwörter mit frei wählbarer Länge und Zeichensatz, komplett lokal ohne Server.",
       tools: ["HTML", "CSS", "JavaScript"],
-      link: "password-generator"
+      link: "password-generator.html"
     },
     {
       title: "VideoOptimizer",
@@ -259,14 +258,14 @@
       title: "WordMixer",
       desc: "Kleines Lernspiel zum Englisch üben: englische Wörter entschlüsseln, gegen die Zeit.",
       tools: ["HTML", "Tailwind", "JavaScript"],
-      link: "WordMixer"
+      link: "wordmixer.html"
     },
   
     {
       title: "Crypto Dashboard",
       desc: "Übersicht über die Kryptomärkte mit Suche, Favoriten und Kursverlauf pro Coin.",
       tools: ["HTML", "Tailwind", "Chart.js"],
-      link: "crypto-dashboard"
+      link: "crypto-dashboard.html"
     },
     {
       title: ".CH Domain Checker",
@@ -307,24 +306,14 @@
       desc: "Aktuelle Ausbildung mit Schwerpunkt Finanz- und Rechnungswesen sowie Wirtschaft und Recht.",
     },
     {
-      years: "seit 2023",
-      title: "Lienhardt Fine Jewellery",
-      desc: "Job neben der Schule: KV sowie Betreuung der Websites & Marketing von Lienhardt Fine Jewellery und edelmetalle.ch",
-    },
-    {
       years: "2021 – 2024",
       title: "Bezirksschule Baden",
       desc: "Besuch der Bezirksschule Baden.",
     },
     {
-      years: "2022",
-      title: "Schnupperpraktikum, Edelmetalle Geiger",
-      desc: "Kurzes Schnuppern im Verkauf.",
-    },
-    {
       years: "2015 – 2021",
       title: "Primarschule Ehrendingen",
-      desc: "1-6 Klasse in der Primarschule Ehrendingen.",
+      desc: "1–6 Klasse in der Primarschule Ehrendingen.",
     },
   ];
 
