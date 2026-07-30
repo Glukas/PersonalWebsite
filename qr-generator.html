@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>QR-Code Generator — Lukas Geiger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="icon" href="icon3 (1).png">
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#14171d; --line:#242830;
+    --ink:#e9eaee; --ink-dim:#8a8f9a; --accent:#6fc3f5;
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin:0; min-height:100vh; display:flex; flex-direction:column;
+  }
+  main{ flex:1; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+  .container{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:2em; max-width:420px; width:100%;
+  }
+  h1{ font-size:1.6em; margin-bottom:.4em; letter-spacing:.5px; text-align:center; }
+  .desc{
+    font-size:.95em; margin-bottom:1.2em; color:var(--ink-dim);
+    background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:.8em 1em; text-align:center; line-height:1.6;
+  }
+  .desc a{ color:var(--accent); }
+  .select-group{ margin-bottom:1em; }
+  label{ display:block; margin-bottom:.5em; font-size:1em; color:var(--ink); }
+  input, textarea, select{
+    width:100%; padding:.55em; border-radius:7px; border:1px solid var(--line);
+    margin-bottom:1em; font-size:1em; background:var(--bg); color:var(--ink);
+  }
+  input:focus, textarea:focus, select:focus{ outline:none; border-color:var(--accent); }
+  textarea{ min-height:60px; resize:vertical; }
+  .generate-btn, .download-btn{
+    background:var(--accent); color:#0c0e12; border:none; border-radius:8px;
+    padding:.7em 1.4em; font-size:1.05em; font-weight:700; cursor:pointer;
+    margin-top:.5em; width:100%; transition:opacity .15s;
+  }
+  .generate-btn:hover, .download-btn:hover{ opacity:.85; }
+  #qrcode{
+    margin:1.5em auto 0; display:flex; justify-content:center;
+    background:#fff; padding:1em; border-radius:12px; width:fit-content;
+  }
+  .wifi-row{ display:flex; align-items:center; gap:.7em; margin-bottom:1em; }
+  .wifi-row label{ margin-bottom:0; flex:1; }
+  .wifi-row input[type="checkbox"]{ width:auto; margin-bottom:0; accent-color:var(--accent); }
+  footer{ border-top:1px solid var(--line); padding:20px; text-align:center; font-size:.8rem; color:var(--ink-dim); }
+  footer a{ color:var(--ink-dim); text-decoration:none; }
+  footer a:hover{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="container">
+    <h1>QR-Code Generator</h1>
+    <div class="desc">
+      Erstellt QR-Codes sofort und ohne Registrierung.<br>
+      Alles läuft direkt in deinem Browser, nichts verlässt dein Gerät.<br>
+      Typ wählen, Inhalt eingeben und als PNG oder PDF herunterladen.
+    </div>
+    <div class="select-group">
+      <label for="type">Inhaltstyp wählen</label>
+      <select id="type" onchange="showFields()">
+        <option value="plain">Text</option>
+        <option value="url">URL</option>
+        <option value="email">E-Mail</option>
+        <option value="wifi">WLAN</option>
+        <option value="vcard">Kontakt (vCard)</option>
+      </select>
+    </div>
+    <form id="qr-form" onsubmit="event.preventDefault(); generateQR();">
+      <div id="fields"></div>
+      <button class="generate-btn" type="submit">QR-Code erstellen</button>
+    </form>
+    <div id="download-buttons" style="display:none;">
+      <button class="download-btn" onclick="downloadPNG()">Als PNG herunterladen</button>
+      <button class="download-btn" onclick="downloadPDF()">Als PDF herunterladen</button>
+    </div>
+    <div id="qrcode"></div>
+  </div>
+</main>
+
+<footer>
+  <a href="datenschutz.html">Datenschutz</a>
+</footer>
+
+<script>
+function showFields() {
+  const type = document.getElementById('type').value;
+  const fields = document.getElementById('fields');
+  fields.innerHTML = '';
+  if (type === 'plain') {
+    fields.innerHTML = `
+      <label for="plaintext">Text:</label>
+      <textarea id="plaintext" placeholder="Hier deinen Text eingeben"></textarea>
+    `;
+  } else if (type === 'url') {
+    fields.innerHTML = `
+      <label for="url">URL:</label>
+      <input type="url" id="url" placeholder="https://beispiel.ch">
+    `;
+  } else if (type === 'email') {
+    fields.innerHTML = `
+      <label for="email">E-Mail-Adresse:</label>
+      <input type="email" id="email" placeholder="beispiel@mail.ch">
+      <label for="subject">Betreff (optional):</label>
+      <input type="text" id="subject" placeholder="Betreff">
+      <label for="body">Nachricht (optional):</label>
+      <textarea id="body" placeholder="Nachricht"></textarea>
+    `;
+  } else if (type === 'wifi') {
+    fields.innerHTML = `
+      <label for="ssid">WLAN-Name (SSID):</label>
+      <input type="text" id="ssid" placeholder="Netzwerkname">
+      <label for="wifipass">WLAN-Passwort:</label>
+      <input type="text" id="wifipass" placeholder="Passwort">
+      <label for="encryption">Verschlüsselung:</label>
+      <select id="encryption">
+        <option value="WPA">WPA/WPA2</option>
+        <option value="WEP">WEP</option>
+        <option value="">Keine</option>
+      </select>
+      <div class="wifi-row">
+        <label for="hidden" style="margin-bottom:0;">Verstecktes Netzwerk</label>
+        <input type="checkbox" id="hidden">
+      </div>
+    `;
+  } else if (type === 'vcard') {
+    fields.innerHTML = `
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="Max Muster">
+      <label for="org">Firma:</label>
+      <input type="text" id="org" placeholder="Firma">
+      <label for="phone">Telefon:</label>
+      <input type="text" id="phone" placeholder="+41791234567">
+      <label for="emailv">E-Mail:</label>
+      <input type="email" id="emailv" placeholder="max@muster.ch">
+    `;
+  }
+}
+
+function generateQR() {
+  const type = document.getElementById('type').value;
+  let qrData = '';
+  if (type === 'plain') {
+    qrData = document.getElementById('plaintext').value || '';
+  } else if (type === 'url') {
+    qrData = document.getElementById('url').value || '';
+  } else if (type === 'email') {
+    const email = document.getElementById('email').value || '';
+    const subject = document.getElementById('subject').value || '';
+    const body = document.getElementById('body').value || '';
+    qrData = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  } else if (type === 'wifi') {
+    const ssid = document.getElementById('ssid').value || '';
+    const pass = document.getElementById('wifipass').value || '';
+    const enc = document.getElementById('encryption').value || '';
+    const hidden = document.getElementById('hidden').checked ? 'true' : 'false';
+    qrData = `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`;
+  } else if (type === 'vcard') {
+    const name = document.getElementById('name').value || '';
+    const org = document.getElementById('org').value || '';
+    const phone = document.getElementById('phone').value || '';
+    const emailv = document.getElementById('emailv').value || '';
+    qrData = `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+ORG:${org}
+TEL:${phone}
+EMAIL:${emailv}
+END:VCARD`;
+  }
+  const qrDiv = document.getElementById('qrcode');
+  qrDiv.innerHTML = '';
+  const downloadDiv = document.getElementById('download-buttons');
+  if (qrData.trim() === '') {
+    qrDiv.innerHTML = '<span style="color:#c05656;">Bitte einen Inhalt eingeben.</span>';
+    downloadDiv.style.display = 'none';
+    return;
+  }
+  new QRCode(qrDiv, {
+    text: qrData,
+    width: 220,
+    height: 220,
+    colorDark: "#0c0e12",
+    colorLight: "#fff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  downloadDiv.style.display = 'block';
+}
+
+function downloadPNG() {
+  const qrCanvas = document.querySelector('#qrcode canvas');
+  if (!qrCanvas) return;
+  const link = document.createElement('a');
+  link.href = qrCanvas.toDataURL('image/png');
+  link.download = 'qrcode.png';
+  link.click();
+}
+
+function downloadPDF() {
+  const qrCanvas = document.querySelector('#qrcode canvas');
+  if (!qrCanvas) return;
+  const imgData = qrCanvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+  pdf.addImage(imgData, 'PNG', 30, 30, 150, 150);
+  pdf.save('qrcode.pdf');
+}
+
+window.onload = function () {
+  showFields();
+  document.getElementById('type').value = 'plain';
+  setTimeout(() => {
+    const pt = document.getElementById('plaintext');
+    if (pt) pt.focus();
+  }, 100);
+  document.getElementById('download-buttons').style.display = 'none';
+};
+</script>
+
+</body>
+</html>

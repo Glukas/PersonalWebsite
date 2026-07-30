@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2FA Generator — Lukas Geiger</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsSHA/2.4.2/sha.js"></script>
+<style>
+  :root{
+    --bg:#0c0e12;
+    --panel:#14171d;
+    --line:#242830;
+    --ink:#e9eaee;
+    --ink-dim:#8a8f9a;
+    --accent:#6fc3f5;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+  header{
+    border-bottom:1px solid var(--line);
+    padding:16px 24px;
+    display:flex; align-items:center; gap:10px;
+  }
+  header a{ color:var(--ink-dim); text-decoration:none; font-size:14px; }
+  header a:hover{ color:var(--ink); }
+  header .sep{ color:var(--line); font-size:14px; }
+  header .current{ color:var(--ink); font-size:14px; }
+
+  main{ flex:1; display:flex; flex-direction:column; align-items:center; padding:2.5rem 1rem 3rem; }
+
+  h1{ font-size:1.8rem; margin-bottom:.3em; text-align:center; }
+  .subtitle{ color:var(--ink-dim); text-align:center; margin-bottom:2.2rem; font-size:.95rem; }
+
+  .content{ width:520px; max-width:95%; display:flex; flex-direction:column; gap:16px; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .card-path{ font-size:12px; color:var(--ink-dim); padding:10px 22px; border-bottom:1px solid var(--line); }
+  .card-body{ padding:28px; }
+
+  .input-line{ display:flex; align-items:center; gap:10px; margin-bottom:28px; }
+  .input-prompt{ font-size:13px; color:var(--ink-dim); white-space:nowrap; }
+  .secret-input{
+    flex:1; background:transparent; border:none; border-bottom:1px solid var(--line);
+    color:var(--ink); font-size:14px; padding:6px 0; outline:none;
+    transition:border-color .2s; caret-color:var(--accent);
+  }
+  .secret-input::placeholder{ color:#3d4149; }
+  .secret-input:focus{ border-color:var(--accent); }
+
+  .otp-section{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .otp-code{
+    font-weight:bold; font-size:3rem; letter-spacing:.2em; color:var(--ink);
+    background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:1.1rem 2rem; cursor:pointer; transition:all .15s; user-select:none;
+    width:100%; text-align:center;
+  }
+  .otp-code.inactive{ color:#2a2e35; }
+  .otp-code.active:hover{ border-color:var(--accent); color:#fff; }
+  .otp-code.copied{ color:#6fe7a0 !important; border-color:#1f4030 !important; }
+
+  .timer-row{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .timer-meta{ display:flex; justify-content:space-between; font-size:11px; color:var(--ink-dim); }
+  .timer-bar-bg{ width:100%; height:3px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .timer-bar{ height:100%; border-radius:99px; background:var(--accent); transition:width 1s linear,background 1s; }
+  .timer-bar.low{ background:#c05656; }
+
+  .copy-hint{ font-size:11px; color:var(--ink-dim); text-align:center; }
+  .error-msg{ font-size:12px; color:#c05656; min-height:1.2em; text-align:center; }
+
+  .note{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 22px; display:flex; gap:10px; }
+  .note-icon{ color:var(--ink-dim); flex-shrink:0; font-size:13px; }
+  .note-text{ font-size:12px; color:var(--ink-dim); line-height:1.6; }
+
+  footer{ border-top:1px solid var(--line); padding:20px; text-align:center; font-size:.8rem; color:var(--ink-dim); }
+  footer a{ color:var(--ink-dim); text-decoration:none; }
+  footer a:hover{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">lukas-geiger.com</a>
+  <span class="sep">/</span>
+  <span class="current">2fa</span>
+</header>
+
+<main>
+  <h1>2FA Generator</h1>
+  <p class="subtitle">Erstellt zeitbasierte Einmalcodes lokal in deinem Browser, nach RFC 6238.</p>
+
+  <div class="content">
+    <div class="card">
+      <div class="card-path">TOTP Secret eingeben</div>
+      <div class="card-body">
+        <div class="input-line">
+          <span class="input-prompt">secret&nbsp;&gt;</span>
+          <input type="text" id="secret" class="secret-input" placeholder="dein TOTP Secret einfügen…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="otp-section">
+          <div class="otp-code inactive" id="otp">000 000</div>
+          <div class="copy-hint" id="copyHint">zum Kopieren anklicken</div>
+          <div class="timer-row">
+            <div class="timer-meta">
+              <span id="timerLabel">warte auf Secret…</span>
+              <span id="timerCount">30s</span>
+            </div>
+            <div class="timer-bar-bg"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+          </div>
+          <div class="error-msg" id="error"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">i</span>
+      <span class="note-text">Dein Secret wird ausschliesslich in deinem Browser verarbeitet und nie irgendwohin gesendet. Die Codes erneuern sich automatisch alle 30 Sekunden.</span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="datenschutz.html">Datenschutz</a>
+</footer>
+
+<script>
+let secretKey = '';
+let currentOtp = null;
+
+function leftpad(s, l, p) {
+  while (s.length < l) s = p + s;
+  return s;
+}
+function dec2hex(s) {
+  return (s < 15.5 ? '0' : '') + Math.round(s).toString(16);
+}
+function hex2dec(s) {
+  return parseInt(s, 16);
+}
+function base32tohex(b) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '', hex = '';
+  for (let i = 0; i < b.length; i++) {
+    const v = chars.indexOf(b[i].toUpperCase());
+    if (v < 0) throw new Error('bad');
+    bits += leftpad(v.toString(2), 5, '0');
+  }
+  for (let i = 0; i + 4 <= bits.length; i += 4) hex += parseInt(bits.substr(i, 4), 2).toString(16);
+  return hex;
+}
+function formatOtp(o) {
+  return o.slice(0, 3) + ' ' + o.slice(3);
+}
+function generateOtp(key) {
+  const epoch = Math.round(Date.now() / 1000);
+  const time = leftpad(dec2hex(Math.floor(epoch / 30)), 16, '0');
+  const sha = new jsSHA('SHA-1', 'HEX');
+  sha.setHMACKey(key, 'HEX');
+  sha.update(time);
+  const hmac = sha.getHMAC('HEX');
+  const offset = hex2dec(hmac.substring(hmac.length - 1));
+  let otp = (hex2dec(hmac.substr(offset * 2, 8)) & hex2dec('7fffffff')) + '';
+  return leftpad(otp.substring(otp.length - 6), 6, '0');
+}
+
+function updateOtp() {
+  const el = document.getElementById('otp');
+  const err = document.getElementById('error');
+  if (secretKey.length >= 16) {
+    try {
+      const key = base32tohex(secretKey);
+      const otp = generateOtp(key);
+      currentOtp = otp;
+      el.textContent = formatOtp(otp);
+      el.classList.remove('inactive');
+      el.classList.add('active');
+      err.textContent = '';
+    } catch {
+      currentOtp = null;
+      el.textContent = '000 000';
+      el.classList.add('inactive');
+      el.classList.remove('active');
+      err.textContent = 'ungültiges Secret';
+    }
+  } else {
+    currentOtp = null;
+    el.textContent = '000 000';
+    el.classList.add('inactive');
+    el.classList.remove('active');
+    err.textContent = '';
+  }
+}
+
+function updateTimer() {
+  const epoch = Math.round(Date.now() / 1000);
+  const remaining = 30 - (epoch % 30);
+  document.getElementById('timerCount').textContent = remaining + 's';
+  const bar = document.getElementById('timerBar');
+  bar.style.width = (remaining / 30) * 100 + '%';
+  bar.classList.toggle('low', remaining <= 7);
+  if (currentOtp) {
+    document.getElementById('timerLabel').textContent = 'erneuert sich in';
+    if (epoch % 30 === 0) updateOtp();
+  } else {
+    document.getElementById('timerLabel').textContent = 'warte auf Secret…';
+  }
+}
+
+document.getElementById('secret').addEventListener('input', function () {
+  secretKey = this.value.replace(/\s/g, '');
+  updateOtp();
+});
+
+document.getElementById('otp').addEventListener('click', () => {
+  if (!currentOtp) return;
+  const el = document.getElementById('otp');
+  const hint = document.getElementById('copyHint');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(currentOtp);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = currentOtp;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  el.classList.add('copied');
+  el.textContent = 'kopiert!';
+  hint.textContent = 'in die Zwischenablage kopiert';
+  setTimeout(() => {
+    el.classList.remove('copied');
+    el.textContent = formatOtp(currentOtp);
+    hint.textContent = 'zum Kopieren anklicken';
+  }, 1200);
+});
+
+setInterval(updateTimer, 1000);
+updateTimer();
+</script>
+</body>
+</html>

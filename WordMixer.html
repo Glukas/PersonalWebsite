@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WordMixer — Lukas Geiger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#0c0e12; --panel:#14171d; --line:#242830;
+      --ink:#e9eaee; --ink-dim:#8a8f9a; --accent:#6fc3f5;
+    }
+    body{ background:var(--bg); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    footer.site-footer{ border-top:1px solid var(--line); }
+    footer.site-footer a{ color:var(--ink-dim); text-decoration:none; }
+    footer.site-footer a:hover{ color:var(--ink); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between px-2 py-6">
+
+  <div class="flex flex-col items-center">
+    <h1 class="text-4xl font-extrabold text-[var(--ink)] mb-2 text-center drop-shadow-lg select-none">WordMixer</h1>
+    <div class="text-base text-[var(--ink-dim)] mb-6 text-center max-w-xl select-none">
+      Ein kleines Spiel zum Englisch lernen: entwirre die Buchstaben und finde das richtige englische Wort.<br />
+      Du hast <span class="font-bold text-[var(--accent)]">15 Sekunden</span> pro Wort und <span class="font-bold text-[var(--accent)]">3 Versuche</span>. Nutze bei Bedarf den Tipp!
+    </div>
+    <div class="bg-[var(--panel)] border border-[var(--line)] rounded-2xl shadow-2xl p-8 w-full max-w-md flex flex-col items-center">
+      <div id="scrambled" class="text-3xl font-extrabold tracking-widest text-[var(--accent)] mb-6 select-none">Lädt...</div>
+      <input type="text" id="guess" placeholder="Deine Antwort..." class="w-full bg-[var(--bg)] text-[var(--ink)] text-lg rounded-lg px-4 py-3 mb-2 outline-none border border-[var(--line)] focus:border-[var(--accent)] transition" autocomplete="off" />
+      <div class="flex w-full gap-3 mt-2 mb-4">
+        <button onclick="checkGuess()" class="flex-1 bg-[var(--accent)] hover:opacity-85 text-[#0c0e12] font-semibold rounded-lg py-2 transition">Prüfen</button>
+        <button onclick="showHint()" class="flex-1 bg-[var(--line)] hover:opacity-80 text-[var(--ink)] font-semibold rounded-lg py-2 transition">Tipp</button>
+        <button onclick="showSolution()" class="flex-1 bg-[var(--line)] hover:opacity-80 text-[var(--ink)] font-semibold rounded-lg py-2 transition">Lösung</button>
+      </div>
+      <div class="flex flex-col w-full gap-1 mb-2">
+        <div class="text-base text-[var(--accent)] min-h-[1.5em]" id="feedback"></div>
+        <div class="flex justify-between text-sm text-[var(--ink-dim)]">
+          <span id="timer">Zeit: 0</span>
+          <span id="attempts">Versuche übrig: 3</span>
+          <span id="score">Punkte: 0 ⭐</span>
+        </div>
+      </div>
+      <div class="flex w-full gap-3 mt-2">
+        <select id="category" onchange="setCategory(this.value)" class="flex-1 bg-[var(--bg)] text-[var(--ink)] rounded-lg px-3 py-2 border border-[var(--line)] focus:border-[var(--accent)] transition">
+          <option value="animals">Tiere</option>
+          <option value="tech">Technik</option>
+          <option value="food">Essen</option>
+          <option value="random">Zufällig</option>
+        </select>
+        <select id="difficulty" onchange="setDifficulty(this.value)" class="flex-1 bg-[var(--bg)] text-[var(--ink)] rounded-lg px-3 py-2 border border-[var(--line)] focus:border-[var(--accent)] transition">
+          <option value="easy">Leicht</option>
+          <option value="medium">Mittel</option>
+          <option value="hard">Schwer</option>
+        </select>
+      </div>
+      <div class="mt-4 text-xs text-[var(--ink-dim)] opacity-80" id="legend" style="display:none;">
+        Tipp: erster und letzter Buchstabe werden <span class="text-[var(--accent)] font-bold">hervorgehoben</span>.
+      </div>
+    </div>
+  </div>
+
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c9e1c2df1.mp3?filename=correct-2-46134.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_b4f81cf502.mp3?filename=wrong-2-46133.mp3"></audio>
+  <audio id="timeoutSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c9f6d6584f.mp3?filename=game-over-2-16072.mp3"></audio>
+
+  <footer class="site-footer w-full py-5 text-center text-xs text-[var(--ink-dim)] mt-6">
+    <a href="datenschutz.html">Datenschutz</a>
+  </footer>
+
+  <script>
+    const wordPools = {
+      easy: {
+        animals: ["cat","dog","ant","cow","bat","pig","fox","bee","rat","owl","hen","eel","ape","fly","yak","elk","ram","hog","jay","cub"],
+        tech: ["app","bot","ram","usb","cpu","web","led","ai","bug","bit","dns","gui","api","cpu","ftp","lan","ssl","url","vpn","xml"],
+        food: ["egg","tea","jam","pie","bun","oil","ice","pea","ham","nut","fig","soy","ale","yam","syrup","corn","milk","beef","fish","rice"],
+        random: ["sun","sky","box","car","map","hat","pen","bag","key","bed","web","fan","cup","jar","toy","rat","wax","lid","gum","axe"]
+      },
+      medium: {
+        animals: ["tiger","zebra","horse","koala","lemur","shark","whale","rhino","camel","mouse","otter","panda","eagle","llama","sloth","viper","crow","hyena","jelly","moth"],
+        tech: ["mouse","laptop","wifi","token","cache","proxy","email","debug","phone","cloud","virus","array","pixel","pixel","batch","codec","drive","logic","script","robot"],
+        food: ["cheese","tomato","salami","biscuit","cookie","orange","banana","carrot","onion","pepper","lettuce","butter","almond","garlic","spinach","avocado","cabbage","radish","ginger","quinoa"],
+        random: ["apple","space","river","storm","magic","night","dream","crown","plant","giant","ghost","globe","piano","water","light","sound","heart","cloud","field","stone"]
+      },
+      hard: {
+        animals: ["crocodile","chimpanzee","porcupine","armadillo","orangutan","hippopotamus","salamander","albatross","platypus","jellyfish","woodpecker","rattlesnake","chimpanzee","tarantula","anaconda","buffalo","kangaroo","hedgehog","cockatoo","narwhal"],
+        tech: ["javascript","blockchain","microchip","motherboard","algorithm","processor","transistor","virtualization","encryption","neuralnet","database","compiler","firewall","framework","interface","protocol","repository","simulation","bandwidth","debugging"],
+        food: ["croissant","artichoke","sauerkraut","guacamole","lasagna","raviolini","blackberry","macaroni","zucchini","hamburger","pomegranate","cauliflower","cappuccino","cantaloupe","cinnamon","eggplant","fettuccine","mozzarella","pineapple","truffle"],
+        random: ["philosopher","subterranean","jurisdiction","infrastructure","consciousness","transcendental","manipulation","configuration","hypothetical","distinction","conglomerate","entrepreneur","metamorphosis","contradiction","phenomenon","circumstance","representation","revolutionary","approximation","interpretation"]
+      }
+    };
+
+    let currentWord = "";
+    let scrambledWord = "";
+    let category = "animals";
+    let difficulty = "easy";
+    let timer;
+    let attempts = 3;
+    let score = 0;
+
+    function scramble(word) {
+      let shuffled;
+      do {
+        shuffled = word.split('').sort(() => 0.5 - Math.random()).join('');
+      } while (shuffled === word);
+      return shuffled;
+    }
+
+    function setCategory(cat) { category = cat; startNewWord(); }
+    function setDifficulty(level) { difficulty = level; startNewWord(); }
+
+    function startNewWord() {
+      clearInterval(timer);
+      const wordList = wordPools[difficulty][category];
+      currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+      scrambledWord = scramble(currentWord);
+      document.getElementById("scrambled").textContent = scrambledWord;
+      document.getElementById("legend").style.display = "none";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("guess").value = "";
+      attempts = 3;
+      document.getElementById("attempts").textContent = "Versuche übrig: " + attempts;
+      startTimer();
+    }
+
+    function startTimer() {
+      let time = 15;
+      document.getElementById("timer").textContent = "Zeit: " + time;
+      timer = setInterval(() => {
+        time--;
+        document.getElementById("timer").textContent = "Zeit: " + time;
+        if (time <= 0) {
+          clearInterval(timer);
+          playSound("timeout");
+          document.getElementById("feedback").textContent = "⏰ Zeit abgelaufen! Wort war: " + currentWord;
+          setTimeout(startNewWord, 2000);
+        }
+      }, 1000);
+    }
+
+    function checkGuess() {
+      const guess = document.getElementById("guess").value.toLowerCase().trim();
+      if (guess === currentWord.toLowerCase()) {
+        clearInterval(timer);
+        score++;
+        document.getElementById("score").textContent = "Punkte: " + score + " ⭐";
+        playSound("correct");
+        document.getElementById("feedback").textContent = "✅ Richtig!";
+        setTimeout(startNewWord, 1500);
+      } else {
+        attempts--;
+        document.getElementById("attempts").textContent = "Versuche übrig: " + attempts;
+        playSound("wrong");
+        if (attempts <= 0) {
+          clearInterval(timer);
+          document.getElementById("feedback").textContent = "❌ Keine Versuche mehr! Wort war: " + currentWord;
+          setTimeout(startNewWord, 2000);
+        } else {
+          document.getElementById("feedback").textContent = "❌ Versuch's nochmal!";
+        }
+      }
+    }
+
+    function showSolution() {
+      clearInterval(timer);
+      document.getElementById("feedback").textContent = "💡 Lösung: " + currentWord;
+      setTimeout(startNewWord, 2000);
+    }
+
+    function showHint() {
+      document.getElementById("scrambled").innerHTML = highlightHint(scrambledWord, currentWord);
+      document.getElementById("legend").style.display = "block";
+    }
+
+    function highlightHint(scrambled, original) {
+      const first = original.charAt(0);
+      const last = original.charAt(original.length - 1);
+      return scrambled.split('').map(c =>
+        (c === first || c === last) ? `<span class='text-[var(--accent)] font-bold'>${c}</span>` : c
+      ).join('');
+    }
+
+    function playSound(type) {
+      const sounds = {
+        correct: document.getElementById("correctSound"),
+        wrong: document.getElementById("wrongSound"),
+        timeout: document.getElementById("timeoutSound")
+      };
+      if (sounds[type]) sounds[type].play();
+    }
+
+    window.onload = () => setDifficulty("easy");
+  </script>
+</body>
+</html>

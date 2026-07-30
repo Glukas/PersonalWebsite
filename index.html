@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lukas Geiger</title>
+<meta name="description" content="Lukas Geiger — Lebenslauf und Projekte. Schüler an der Wirtschaftsmittelschule Baden.">
+<meta name="robots" content="nofollow">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --bg:#0c0e12;
+    --panel:#14171d;
+    --line:#242830;
+    --ink:#e9eaee;
+    --ink-dim:#8a8f9a;
+    --accent:#6fc3f5;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  ::selection{ background:var(--accent); color:#0c0e12; }
+  .accent{ color:var(--accent); }
+  .card{ background:var(--panel); border:1px solid var(--line); transition:border-color .2s ease, transform .2s ease; }
+  .card:hover{ border-color:#3a3f4a; transform:translateY(-2px); }
+  .btn{
+    background:var(--accent); color:#0c0e12; font-weight:600;
+    transition:opacity .15s ease;
+  }
+  .btn:hover{ opacity:.85; }
+  .btn-outline{
+    border:1px solid var(--line); color:var(--ink);
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .btn-outline:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .img-box{
+    background:var(--panel);
+    border:1px dashed var(--line);
+  }
+
+  .reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.is-visible{ opacity:1; transform:translateY(0); }
+
+  .timeline-line{ background:var(--line); width:1px; }
+  .lang-bar{ background:var(--line); height:8px; border-radius:999px; overflow:hidden; }
+  .lang-bar-fill{ background:var(--accent); height:100%; border-radius:999px; }
+
+  .project-link-btn{
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .project-card:hover .project-link-btn{ transform:translateY(0); }
+
+  .stack-item{ transition:border-color .2s ease, transform .2s ease; }
+  .stack-item:hover{ border-color:var(--accent); transform:translateY(-2px); }
+
+  .lang-row{ transition:padding-left .2s ease; }
+  .lang-row:hover{ padding-left:8px; }
+</style>
+</head>
+<body class="antialiased">
+
+<header class="fixed top-0 inset-x-0 z-40 border-b border-[var(--line)] bg-[var(--bg)]/90 backdrop-blur">
+  <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="font-bold text-lg tracking-tight">Lukas Geiger</a>
+    <nav class="hidden md:flex items-center gap-8 text-sm text-[var(--ink-dim)]">
+      <a href="#ueber-mich" class="hover:text-[var(--ink)] transition">Über mich</a>
+      <a href="#projekte" class="hover:text-[var(--ink)] transition">Projekte</a>
+      <a href="#lebenslauf" class="hover:text-[var(--ink)] transition">Lebenslauf</a>
+      <a href="#sprachen" class="hover:text-[var(--ink)] transition">Sprachen</a>
+
+    </nav>
+    <a target="_blank" href="https://github.com/Glukas" class="btn text-sm px-4 py-2 rounded-md">GitHub</a>
+  </div>
+</header>
+
+<section id="top" class="pt-36 pb-20 border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="reveal is-visible">
+      <p class="text-sm text-[var(--ink-dim)] mb-4">Wirtschaftsmittelschule Baden</p>
+      <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
+        Lukas Geiger
+      </h1>
+      <p class="mt-5 text-[var(--ink-dim)] text-lg max-w-lg leading-relaxed">
+        Ich besuche die Wirtschaftsmittelschule an der Kantonsschule Baden.
+        Nebenbei programmiere ich seit 2023 als Hobby und spiele in meiner
+        Freizeit Handball.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="#lebenslauf" class="btn text-sm px-5 py-2.5 rounded-md">Lebenslauf</a>
+        <a href="#projekte" class="btn-outline text-sm px-5 py-2.5 rounded-md">Projekte</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ueber-mich" class="border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-20 grid md:grid-cols-[0.8fr,1.2fr] gap-14 items-center">
+    <div class="reveal order-2 md:order-1">
+      <div class="aspect-[4/3] rounded-xl overflow-hidden img-box">
+        <img src="stage.png" alt="Lukas Geiger" class="w-full h-full object-cover"
+             onerror="this.remove()">
+      </div>
+    </div>
+    <div class="order-1 md:order-2 reveal">
+      <p class="text-sm text-[var(--ink-dim)] mb-4">Über mich</p>
+      <p class="text-[var(--ink)] text-lg leading-relaxed mb-4">
+        Mich interessiert vor allem das Programmieren kleiner Tools, die den Alltag erleichtern. Im Jahr 2023 habe ich mit HTML, CSS und JavaScript angefangen. Mittlerweile arbeite ich hauptsächlich mit Python und WordPress an eigenen kleinen Projekten, die mir Spass machen.
+      </p>
+      <p class="text-[var(--ink-dim)] leading-relaxed">
+        Neben der Schule arbeite ich ab und zu bei der Lienhardt Fine Jewellery & der Edle Metalle AG. Dort übernehme
+        ich unter anderem das Kaufmänische sowie teile der Webseiten und helfe im Marketing mit.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="stack" class="border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-20">
+    <p class="text-sm text-[var(--ink-dim)] mb-4 reveal">Womit ich arbeite</p>
+    <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-4" id="stackGrid"></div>
+  </div>
+</section>
+
+<section id="projekte" class="border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-20">
+    <p class="text-sm text-[var(--ink-dim)] mb-4 reveal">Projekte</p>
+    <h2 class="text-3xl font-bold tracking-tight mb-10 reveal">Meine bisherigen Projekte</h2>
+    <div id="projectsGrid" class="grid sm:grid-cols-2 gap-5"></div>
+  </div>
+</section>
+
+<section id="lebenslauf" class="border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-20">
+    <p class="text-sm text-[var(--ink-dim)] mb-4 reveal">Lebenslauf</p>
+    <h2 class="text-3xl font-bold tracking-tight mb-12 reveal">Werdegang</h2>
+    <div id="cvTimeline" class="relative pl-7"></div>
+  </div>
+</section>
+
+<section id="sprachen" class="border-b border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-20">
+    <p class="text-sm text-[var(--ink-dim)] mb-4 reveal">Sprachen</p>
+    <h2 class="text-3xl font-bold tracking-tight mb-12 reveal">Wie ich mich verständige</h2>
+    <div id="languages" class="flex flex-col"></div>
+  </div>
+</section>
+
+
+
+<footer class="border-t border-[var(--line)]">
+  <div class="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--ink-dim)]">
+    <span>© <span id="year"></span> Lukas Geiger</span>
+    <a href="datenschutz.html" class="hover:text-[var(--ink)] transition">Datenschutz</a>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+  function escapeAttr(str){
+    return (str || "").replace(/"/g, '&quot;');
+  }
+
+  const stack = [
+    { name: "Python",  slug: "python",      color: "3776AB" },
+      { name: "Java",       slug: "openjdk",     color: "007396" },
+    { name: "HTML",    slug: "html5",       color: "E34F26" },
+    { name: "CSS",    slug: "css",         color: "1572B6" },
+    { name: "JavaScript", slug: "javascript",  color: "F7DF1E" },
+    { name: "Tailwind",   slug: "tailwindcss", color: "38BDF8" },
+    { name: "WordPress",  slug: "wordpress",   color: "21759B" },
+    { name: "Git",        slug: "git",         color: "F05032" },
+    { name: "SQLite", slug: "sqlite",      color: "003B57" },
+  ];
+
+  const stackGrid = document.getElementById('stackGrid');
+  stack.forEach(s => {
+    const div = document.createElement('div');
+    div.className = "card stack-item reveal rounded-lg p-4 flex flex-col items-center text-center gap-2";
+    div.innerHTML = `
+      <img src="https://cdn.simpleicons.org/${s.slug}/${s.color}" alt="${s.name}" class="w-7 h-7" loading="lazy" onerror="this.style.display='none'">
+      <div class="text-xs text-[var(--ink-dim)]">${s.name}</div>
+    `;
+    stackGrid.appendChild(div);
+  });
+
+  const projects = [
+    {
+      title: "notencheck.ch",
+      desc: "Webseite für Schüler & Lehrpersonen, vereinfacht das Berechnen von Noten.",
+      tools: ["HTML", "CSS", "JavaScript"],
+      link: "https://notencheck.ch/"
+    },
+    {
+      title: "RFC 6238 TOTP Generator",
+      desc: "Clientseitige Implementierung des TOTP-Standards (RFC 6238). Zeitbasierte Einmalcodes werden vollständig lokal im Browser aus einem Base32-Secret mittels HMAC-SHA1 generiert.",
+      tools: ["HTML", "CSS", "JavaScript"],
+      link: "2fa.html"
+    },
+    {
+      title: "SV Group Menu zu iCal",
+      desc: "Konvertiert Menüs der SV Group in iCal-Kalenderdateien, damit Essenspläne bequem im Kalender verfolgt werden können.",
+      tools: ["Python", "HTML", "JavaScript"],
+      link: "https://github.com/Glukas/svgroup-menu-zu-ical"
+    },
+    {
+      title: "QR-Code Generator",
+      desc: "Erstellt QR-Codes für Text, URLs, WLAN-Zugänge und Kontakte direkt im Browser, mit Export als PNG oder PDF.",
+      tools: ["HTML", "CSS", "JavaScript"],
+      link: "qr-generator.html"
+    },
+     {
+      title: "AI Audio Transkription Tool",
+      desc: "Python-basiertes Transkriptionstool zur Umwandlung von Audiodateien in Text mithilfe des OpenAI Whisper-Modells.",
+      tools: ["Python"],
+  
+    },
+    {
+      title: "Bild zu ASCII Konverter",
+      desc: "Python-Skript zur Erstellung animierter ASCII-Art aus Bildern mit Pillow und SVG-Export.",
+      tools: ["Python", "Pillow"],
+  
+    },
+  
+    {
+      title: "Password Generator",
+      desc: "Generiert sichere Passwörter mit frei wählbarer Länge und Zeichensatz, komplett lokal ohne Server.",
+      tools: ["HTML", "CSS", "JavaScript"],
+      link: "password-generator.html"
+    },
+    {
+      title: "VideoOptimizer",
+      desc: "Python-basiertes Tool zur automatisierten Videokomprimierung mit konfigurierbaren Kodierungs- und Qualitätseinstellungen.",
+      tools: ["Python", "FFmpeg"],
+    },
+    {
+      title: "FoavaSoap",
+      desc: "Webseite für unser YES-Projekt, mit Informationen zu unserem selbst produzierten Seifen.",
+      tools: ["Jimdo Website Builder"],
+      link: "https://www.foavasoap.ch/"
+    },
+     {
+      title: "WMS Schnitt Berechner",
+      desc: "Berechnet mithilfe eines Quick-Imports den aktuelen Schnitt mit den Noten der Wirtschaftsmittelschule Baden.",
+      tools: ["Python", "HTML"],
+  
+    },
+    {
+      title: "WordMixer",
+      desc: "Kleines Lernspiel zum Englisch üben: englische Wörter entschlüsseln, gegen die Zeit.",
+      tools: ["HTML", "Tailwind", "JavaScript"],
+      link: "wordmixer.html"
+    },
+  
+    {
+      title: "Crypto Dashboard",
+      desc: "Übersicht über die Kryptomärkte mit Suche, Favoriten und Kursverlauf pro Coin.",
+      tools: ["HTML", "Tailwind", "Chart.js"],
+      link: "crypto-dashboard.html"
+    },
+    {
+      title: ".CH Domain Checker",
+      desc: "RDAP-basierter .CH Domain Availability Scanner zur automatisierten Verfügbarkeitsprüfung mit Datenbankverwaltung.",
+      tools: ["Python", "SQLite"],
+    },
+   
+    {
+      title: "Webbassierte KI-Assistent mit Bildverarbeitung",
+      desc: "Webbasierter KI-Assistent mit Gemini-API für Chats und Bildanalyse. API-Schlüssel werden sicher über Umgebungsvariablen verwaltet.",
+      tools: ["Python", "HTML"],
+  
+    },
+  ];
+
+  const projectsGrid = document.getElementById('projectsGrid');
+  projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = "project-card card reveal rounded-xl p-6 flex flex-col relative";
+    const toolsHtml = (p.tools || [])
+      .map(t => `<span class="text-xs text-[var(--ink-dim)] border border-[var(--line)] rounded px-2 py-0.5 mr-1 mb-1 inline-block">${escapeHtml(t)}</span>`)
+      .join('');
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <h3 class="font-semibold text-lg">${escapeHtml(p.title)}</h3>
+        ${p.link ? `<a href="${escapeAttr(p.link)}" target="_blank" class="project-link-btn btn text-xs px-3 py-1.5 rounded-md shrink-0">Ansehen</a>` : ""}
+      </div>
+      <p class="text-sm text-[var(--ink-dim)] mt-2 flex-1">${escapeHtml(p.desc || "")}</p>
+      <div class="mt-4">${toolsHtml}</div>
+    `;
+    projectsGrid.appendChild(card);
+  });
+
+  const cv = [
+    {
+      years: "seit 2024",
+      title: "Wirtschaftsmittelschule, Kantonsschule Baden",
+      desc: "Aktuelle Ausbildung mit Schwerpunkt Finanz- und Rechnungswesen sowie Wirtschaft und Recht.",
+    },
+    {
+      years: "seit 2023",
+      title: "Lienhardt Fine Jewellery",
+      desc: "Job neben der Schule: KV sowie Betreuung der Websites & Marketing von Lienhardt Fine Jewellery und edelmetalle.ch",
+    },
+    {
+      years: "2021 – 2024",
+      title: "Bezirksschule Baden",
+      desc: "Besuch der Bezirksschule Baden.",
+    },
+    {
+      years: "2022",
+      title: "Schnupperpraktikum, Edelmetalle Geiger",
+      desc: "Kurzes Schnuppern im Verkauf.",
+    },
+    {
+      years: "2015 – 2021",
+      title: "Primarschule Ehrendingen",
+      desc: "1-6 Klasse in der Primarschule Ehrendingen.",
+    },
+  ];
+
+  const cvTimeline = document.getElementById('cvTimeline');
+  cvTimeline.innerHTML = `<div class="timeline-line absolute left-0 top-1 bottom-1"></div>`;
+  cv.forEach(c => {
+    const item = document.createElement('div');
+    item.className = "relative mb-9 reveal";
+    item.innerHTML = `
+      <div class="absolute -left-7 top-1.5 w-2 h-2 rounded-full bg-[var(--accent)]"></div>
+      <span class="text-xs text-[var(--ink-dim)]">${escapeHtml(c.years)}</span>
+      <h3 class="font-semibold mt-0.5">${escapeHtml(c.title)}</h3>
+      ${c.desc ? `<p class="text-sm text-[var(--ink-dim)] mt-1">${escapeHtml(c.desc)}</p>` : ""}
+    `;
+    cvTimeline.appendChild(item);
+  });
+
+  const languages = [
+    { name: "Deutsch", level: "Muttersprache", pct: 100 },
+    { name: "Englisch", level: "B2 / C1", pct: 85 },
+    { name: "Französisch", level: "B1 / B2", pct: 60 },
+  ];
+
+  const languagesWrap = document.getElementById('languages');
+  languages.forEach(l => {
+    const row = document.createElement('div');
+    row.className = "lang-row reveal py-6 border-b border-[var(--line)] last:border-b-0 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8";
+    row.innerHTML = `
+      <div class="sm:w-64 shrink-0">
+        <div class="text-2xl sm:text-3xl font-semibold">${escapeHtml(l.name)}</div>
+        <div class="text-sm text-[var(--ink-dim)] mt-1">${escapeHtml(l.level)}</div>
+      </div>
+      <div class="lang-bar flex-1">
+        <div class="lang-bar-fill" style="width:${l.pct}%"></div>
+      </div>
+    `;
+    languagesWrap.appendChild(row);
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

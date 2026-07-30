@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Dashboard — Lukas Geiger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background:#0c0e12; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .fade-in { animation: fadeIn 0.4s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-bg { background: rgba(0,0,0,0.85); }
+    .star-btn {
+      position: absolute; top: 18px; right: 18px; font-size: 1.5rem;
+      background: none; border: none; cursor: pointer; z-index: 2;
+      transition: color 0.2s;
+    }
+    .star-btn.gold { color: #6fc3f5; }
+    .star-btn.gray { color: #3a3f4a; }
+    footer.site-footer a{ color:#8a8f9a; text-decoration:none; }
+    footer.site-footer a:hover{ color:#e9eaee; }
+  </style>
+</head>
+<body class="text-[#e9eaee] min-h-screen flex flex-col items-center px-2 py-6">
+
+  <h1 class="text-5xl md:text-6xl font-extrabold text-center mb-16 tracking-tight text-[#e9eaee] select-none">Crypto Dashboard</h1>
+
+  <div class="w-full max-w-2xl mx-auto mb-6 flex flex-col md:flex-row gap-3 items-center justify-between">
+    <input id="searchCoin" type="text" placeholder="Coin suchen..." class="bg-[#14171d] border border-[#242830] rounded-lg px-4 py-3 text-white focus:border-[#6fc3f5] transition w-full text-lg font-semibold" autocomplete="off">
+    <div class="flex gap-2 mt-2 md:mt-0">
+      <button id="filterAll" class="bg-[#14171d] border border-[#242830] hover:border-[#6fc3f5] text-white px-3 py-2 rounded font-bold text-sm transition">Alle</button>
+      <button id="filterUp" class="bg-[#14171d] border border-[#242830] hover:border-[#6fc3f5] text-white px-3 py-2 rounded font-bold text-sm transition">Top Gewinner</button>
+      <button id="filterDown" class="bg-[#14171d] border border-[#242830] hover:border-[#6fc3f5] text-white px-3 py-2 rounded font-bold text-sm transition">Top Verlierer</button>
+      <button id="filterFavs" class="bg-[#14171d] border border-[#242830] hover:border-[#6fc3f5] text-[#6fc3f5] px-3 py-2 rounded font-bold text-sm transition">⭐ Favoriten</button>
+    </div>
+  </div>
+
+  <div class="w-full max-w-7xl mx-auto mb-8">
+    <div id="marketStatus" class="text-center text-[#8a8f9a] text-lg mb-4"></div>
+    <div id="market" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+  </div>
+
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-bg">
+    <div class="w-full h-full flex items-center justify-center">
+      <div class="bg-[#14171d] border border-[#242830] rounded-2xl shadow-2xl p-8 max-w-2xl w-full fade-in relative flex flex-col gap-4">
+        <button id="closeModal" type="button" class="absolute top-4 right-6 text-white text-3xl font-bold hover:text-[#6fc3f5] transition z-10">&times;</button>
+        <h3 id="modalTitle" class="text-2xl font-bold mb-4"></h3>
+        <div id="modalChartContainer" style="min-height:260px;display:flex;align-items:center;justify-content:center;">
+          <span id="modalChartLoading" class="text-[#8a8f9a] text-lg">Lädt...</span>
+          <canvas id="modalChart" height="260" style="display:none;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer w-full flex flex-col items-center justify-center mt-12 mb-2 py-5 text-xs text-[#8a8f9a]">
+    <div class="mb-1">
+      Kursdaten von <a href="https://coingecko.com" target="_blank" class="underline text-[#6fc3f5]">CoinGecko</a>
+    </div>
+    <a href="datenschutz.html">Datenschutz</a>
+  </footer>
+
+  <script>
+    function getFavorites() {
+      try { return JSON.parse(localStorage.getItem("crypto_favorites") || "[]"); }
+      catch { return []; }
+    }
+    function saveFavorites(arr) {
+      localStorage.setItem("crypto_favorites", JSON.stringify(arr));
+    }
+    function isFavorite(id) { return getFavorites().includes(id); }
+    function toggleFavorite(id) {
+      let favs = getFavorites();
+      favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
+      saveFavorites(favs);
+      renderMarket(coinsShown);
+    }
+
+    let allCoins = [];
+    let coinsShown = [];
+    let marketLoaded = false;
+    let marketTimeout = null;
+    let currentFilter = "all";
+
+    async function loadMarket() {
+      marketLoaded = false;
+      document.getElementById("marketStatus").textContent = "Lädt...";
+      let coins = [];
+      let failed = false;
+      marketTimeout = setTimeout(() => {
+        if (!marketLoaded) {
+          document.getElementById("marketStatus").textContent = "Coins konnten nicht geladen werden. Versuch's später nochmal.";
+          failed = true;
+        }
+      }, 20000);
+
+      for (let i = 1; i <= 5; i++) {
+        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=${i}`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          coins = coins.concat(data);
+        } catch {}
+      }
+      if (!failed) {
+        allCoins = coins;
+        coinsShown = coins;
+        marketLoaded = true;
+        clearTimeout(marketTimeout);
+        document.getElementById("marketStatus").textContent = "";
+        renderMarket(coins);
+      }
+    }
+
+    function renderMarket(coins) {
+      let html = "";
+      coins.forEach((coin, idx) => {
+        const change = coin.price_change_percentage_24h;
+        const up = change >= 0;
+        html += `
+          <div class="bg-[#14171d] border border-[#242830] rounded-2xl shadow-lg p-6 flex flex-col gap-2 items-center cursor-pointer hover:scale-[1.04] transition fade-in relative"
+            style="animation-delay:${idx * 40}ms"
+            onclick="showCoinModal('${coin.id}','${coin.name}','${coin.symbol}')">
+            <button class="star-btn ${isFavorite(coin.id) ? 'gold' : 'gray'}" title="Favorit" onclick="event.stopPropagation();toggleFavorite('${coin.id}')">
+              ${isFavorite(coin.id) ? '★' : '☆'}
+            </button>
+            <img src="${coin.image}" alt="${coin.name}" class="w-12 h-12 rounded-full shadow mb-2">
+            <div class="font-bold text-lg">${coin.name}</div>
+            <div class="text-[#8a8f9a] text-sm">${coin.symbol.toUpperCase()}</div>
+            <div class="font-bold text-2xl">$${coin.current_price.toLocaleString()}</div>
+            <div class="${up ? 'text-green-400' : 'text-red-400'} font-bold flex items-center gap-1">
+              ${up ? '<span>▲</span>' : '<span>▼</span>'}
+              ${change ? change.toFixed(2) : '0.00'}%
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById("market").innerHTML = html;
+      setTimeout(() => {
+        document.querySelectorAll('.fade-in').forEach((el, i) => {
+          el.style.opacity = 0;
+          el.style.transform = "translateY(40px)";
+          setTimeout(() => {
+            el.style.transition = "all 0.5s cubic-bezier(.4,2,.3,1)";
+            el.style.opacity = 1;
+            el.style.transform = "translateY(0)";
+          }, 100 + i * 40);
+        });
+      }, 100);
+    }
+
+    function applyFilter() {
+      let filtered = [...allCoins];
+      const q = document.getElementById("searchCoin").value.trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q));
+      }
+      if (currentFilter === "up") {
+        filtered = filtered.slice().sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h).slice(0, 20);
+      } else if (currentFilter === "down") {
+        filtered = filtered.slice().sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h).slice(0, 20);
+      } else if (currentFilter === "favs") {
+        const favs = getFavorites();
+        filtered = filtered.filter(c => favs.includes(c.id));
+      }
+      coinsShown = filtered;
+      renderMarket(filtered);
+    }
+
+    document.getElementById("searchCoin").oninput = applyFilter;
+    document.getElementById("filterAll").onclick = () => { currentFilter = "all"; applyFilter(); };
+    document.getElementById("filterUp").onclick = () => { currentFilter = "up"; applyFilter(); };
+    document.getElementById("filterDown").onclick = () => { currentFilter = "down"; applyFilter(); };
+    document.getElementById("filterFavs").onclick = () => { currentFilter = "favs"; applyFilter(); };
+
+    window.showCoinModal = async (id, name, symbol) => {
+      document.getElementById("modal").classList.remove("hidden");
+      document.getElementById("modalTitle").textContent = `${name} (${symbol.toUpperCase()})`;
+      const chartContainer = document.getElementById("modalChartContainer");
+      const chartLoading = document.getElementById("modalChartLoading");
+      const chartEl = document.getElementById("modalChart");
+      chartLoading.textContent = "Lädt...";
+      chartLoading.style.display = "";
+      chartEl.style.display = "none";
+      chartContainer.classList.add("fade-in");
+      try {
+        const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=30`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const prices = data.prices || [];
+        if (!prices.length) throw new Error("Keine Kursdaten");
+        const labels = prices.map(p => {
+          const d = new Date(p[0]);
+          return `${d.getMonth() + 1}/${d.getDate()}`;
+        });
+        const values = prices.map(p => p[1]);
+        chartLoading.style.display = "none";
+        chartEl.style.display = "";
+        new Chart(chartEl, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              label: "Preis (USD)",
+              data: values,
+              borderColor: "#6fc3f5",
+              backgroundColor: "rgba(111,195,245,0.1)",
+              tension: 0.2
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: "#8a8f9a" }, grid: { color: "#242830" } },
+              y: { ticks: { color: "#8a8f9a" }, grid: { color: "#242830" } }
+            }
+          }
+        });
+      } catch {
+        chartLoading.textContent = "Chart konnte nicht geladen werden.";
+        chartLoading.style.display = "";
+        chartEl.style.display = "none";
+      }
+    };
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+      document.getElementById("modalChartContainer").classList.remove("fade-in");
+      document.getElementById("modalChart").style.display = "none";
+      document.getElementById("modalChartLoading").style.display = "";
+    }
+    document.getElementById("closeModal").onclick = (e) => { e.stopPropagation(); closeModal(); };
+    document.getElementById("modal").onclick = e => {
+      if (e.target === document.getElementById("modal")) closeModal();
+    };
+
+    loadMarket();
+  </script>
+</body>
+</html>
